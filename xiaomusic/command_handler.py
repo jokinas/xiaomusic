@@ -88,6 +88,14 @@ class CommandHandler:
         Returns:
             tuple: (命令值, 命令参数)，未匹配返回 (None, None)
         """
+        # 检查是否有待选择的歌曲
+        if device._pending_selection:
+            patternarg = r"^第?([零一二三四五六七八九十百千万亿]+)[个首条集]$"
+            matcharg = re.match(patternarg, query)
+            if matcharg:
+                self.log.info(f"匹配到选择指令. query:{query}")
+                return "select_index", query
+
         # 优先处理完全匹配
         opvalue = self.check_full_match_cmd(device, query, ctrl_panel)
         if opvalue:

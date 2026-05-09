@@ -596,7 +596,7 @@ class MusicLibrary:
         if name in real_names:
             return [name]
 
-        # 音乐不在查找结果同时n大于1, 模糊匹配模式，扩大范围再找，最后保留随机 n 个
+        # 音乐不在查找结果同时n大于1, 模糊匹配模式，扩大范围再找，最后按文件名自然排序
         if n > 1:
             real_names = find_best_match(
                 name,
@@ -605,7 +605,7 @@ class MusicLibrary:
                 n=n * 2,
                 extra_search_index=self._extra_index_search,
             )
-            random.shuffle(real_names)
+            real_names.sort(key=custom_sort_key)
         self.log.info(f"没找到歌曲【{name}】")
         return real_names[:n]
 

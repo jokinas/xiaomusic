@@ -142,6 +142,8 @@ class Config:
     enable_fuzzy_match: bool = (
         os.getenv("XIAOMUSIC_ENABLE_FUZZY_MATCH", "true").lower() == "true"
     )
+    # 模糊搜索返回的最大结果数量（用于多结果选择功能）
+    fuzzy_match_max_results: int = int(os.getenv("XIAOMUSIC_FUZZY_MATCH_MAX_RESULTS", "100"))
     stop_tts_msg: str = os.getenv("XIAOMUSIC_STOP_TTS_MSG", "收到,再见")
     enable_config_example: bool = False
 

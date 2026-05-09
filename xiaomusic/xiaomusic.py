@@ -507,6 +507,23 @@ class XiaoMusic:
             return
         await self.do_tts(did, f"播放列表{list_name}中找不到第${index}个")
 
+    # 口令:选择第几个
+    async def select_index(self, did="", arg1="", **kwargs):
+        patternarg = r"^第?([零一二三四五六七八九十百千万亿]+)[个首条集]$"
+        matcharg = re.match(patternarg, arg1)
+        if not matcharg:
+            return
+
+        chinese_index = matcharg.groups()[0]
+        index = chinese_to_number(chinese_index)
+
+        device = self.device_manager.devices.get(did)
+        if not device:
+            self.log.warning(f"设备 did:{did} 不存在")
+            return
+
+        await device.handle_selection(index)
+
     # 口令:播放歌曲
     async def play(self, did="", arg1="", **kwargs):
         parts = arg1.split("|")

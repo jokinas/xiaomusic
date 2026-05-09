@@ -75,6 +75,8 @@ class XiaoMusicDevice:
         # 关机定时器
         self._stop_timer = None
         self._last_cmd = None
+        self._pending_selection = None
+        self._pending_selection_count = 0
         self.update_playlist()
 
         # 添加歌曲定时器
@@ -235,6 +237,12 @@ class XiaoMusicDevice:
             search_key: 搜索关键词
             allow_download: 是否允许下载（True: _play行为，False: playlocal行为）
         """
+        # 清除旧的待选择状态
+        if self._pending_selection:
+            self.log.info(f"清除旧的待选择状态，重新搜索: {name}")
+            self._pending_selection = None
+            self._pending_selection_count = 0
+
         # 初始检查逻辑
         if not search_key and not name:
             if self.check_play_next():
@@ -251,9 +259,21 @@ class XiaoMusicDevice:
             self.log.info(f"没有歌曲播放了 name:{name} search_key:{search_key}")
             return
 
-        # 模糊搜索
-        names = self.xiaomusic.music_library.find_real_music_name(name, n=1)
-        self.log.info(f"play_internal. names:{names} {len(names)}")
+        # 模糊搜索（支持多结果选择）
+        max_results = self.config.fuzzy_match_max_results
+        names = self.xiaomusic.music_library.find_real_music_name(name, n=max_results)
+        self.log.info(f"play_internal. 搜索关键词:{name} 匹配数量:{len(names)}")
+        if len(names) > 1:
+            for idx, music_name in enumerate(names, 1):
+                self.log.info(f"  第{idx}个: {music_name}")
+
+        if len(names) > 1:
+            self._pending_selection = names
+            self._pending_selection_count = len(names)
+            selection_text = f"共找到{len(names)}条匹配记录，请重新呼叫小爱同学并告诉她第几个"
+            self.log.info(selection_text)
+            await self.xiaomusic.do_tts(self.did, selection_text)
+            return
 
         if not names:
             # 检查本地是否存在歌曲，不存在则根据参数决定是否下载
@@ -991,3 +1011,18 @@ class XiaoMusicDevice:
         if name in music_list.get("所有电台", []):
             return "所有电台"
         return "全部"
+
+    async def handle_selection(self, index):
+        """处理用户选择第几个歌曲
+
+        Args:
+            index: 用户选择的序号（从1开始）
+        """
+        if not self._pending_selection or index < 1 or index > len(self._pending_selection):
+            await self.xiaomusic.do_tts(self.did, "选择无效")
+            return
+
+        selected_name = self._pending_selection[index - 1]
+        self.log.info(f"用户选择了第{index}个: {selected_name}")
+        # 保持待选择状态不变，支持用户继续选择其他歌曲
+        await self._playmusic(selected_name)
