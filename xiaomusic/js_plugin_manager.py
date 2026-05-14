@@ -345,7 +345,7 @@ class JSPluginManager:
                 if voice_playlist_strategy is not None:
                     config_data["voice_playlist_strategy"] = {
                         "desc": "语音搜单策略: default(首条), max_songs(歌曲最多), max_plays(播放最多), random(随机)",
-                        "value": voice_playlist_strategy
+                        "value": voice_playlist_strategy,
                     }
 
                 with open(self.plugins_config_path, "w", encoding="utf-8") as f:
@@ -1109,7 +1109,14 @@ class JSPluginManager:
             self.log.error(f"Failed to read enabled plugins from config: {e}")
             return False
 
-    def search(self, plugin_name: str, keyword: str, page: int = 1, limit: int = 20, type_: str = "music"):
+    def search(
+        self,
+        plugin_name: str,
+        keyword: str,
+        page: int = 1,
+        limit: int = 20,
+        type_: str = "music",
+    ):
         """搜索音乐/歌单"""
         if plugin_name not in self.plugins:
             raise ValueError(f"Plugin {plugin_name} not found or not loaded")
@@ -1122,7 +1129,12 @@ class JSPluginManager:
                 "action": "search",
                 "pluginName": plugin_name,
                 # 把 type_ 参数传给底层 JS
-                "params": {"keywords": keyword, "page": page, "limit": limit, "type": type_},
+                "params": {
+                    "keywords": keyword,
+                    "page": page,
+                    "limit": limit,
+                    "type": type_,
+                },
             }
         )
 
@@ -2618,11 +2630,11 @@ class JSPluginManager:
             self.log.error(f"Failed to update plugin config: {e}")
 
     async def plugin_playlist_search(
-            self,
-            plugin_name: str,
-            keyword: str,
-            page: int = 1,
-            limit: int = 20,
+        self,
+        plugin_name: str,
+        keyword: str,
+        page: int = 1,
+        limit: int = 20,
     ):
         """调用 MusicFree 插件进行歌单搜索，并对齐 LX 格式
 
@@ -2636,7 +2648,7 @@ class JSPluginManager:
         """
         try:
             # 显式传入 type_='sheet' 调用底层插件搜索
-            result = self.search(plugin_name, keyword, page, limit, type_='sheet')
+            result = self.search(plugin_name, keyword, page, limit, type_="sheet")
             data_list = result.get("data", [])
 
             # 补齐平台字段
@@ -2655,16 +2667,16 @@ class JSPluginManager:
                     "total": result.get("total", len(data_list)),
                     "page": page,
                     "limit": limit,
-                }
+                },
             }
         except Exception as e:
             self.log.error(f"插件 {plugin_name} 歌单搜索执行失败: {e}")
             raise
 
     async def plugin_playlist_detail(
-            self,
-            plugin_name: str,
-            b64_id: str,
+        self,
+        plugin_name: str,
+        b64_id: str,
     ):
         """解析 Base64 歌单对象并调用插件获取详情（全量歌曲）
 
@@ -2676,10 +2688,10 @@ class JSPluginManager:
         """
         try:
             # 1. 容错处理 Base64 损坏
-            b64_id = b64_id.replace(' ', '+')
+            b64_id = b64_id.replace(" ", "+")
             missing_padding = len(b64_id) % 4
             if missing_padding:
-                b64_id += '=' * (4 - missing_padding)
+                b64_id += "=" * (4 - missing_padding)
 
             # 2. 还原完整的 JSON 歌单对象
             json_str = base64.b64decode(b64_id).decode("utf-8")
@@ -2691,9 +2703,13 @@ class JSPluginManager:
 
             # 3. 循环翻页，直到拿完所有歌曲
             while current_page <= max_pages:
-                self.log.info(f"正在获取 {plugin_name} 歌单详情，第 {current_page} 页...")
+                self.log.info(
+                    f"正在获取 {plugin_name} 歌单详情，第 {current_page} 页..."
+                )
 
-                result = self.get_music_sheet_info(plugin_name, playlist_info, page=current_page)
+                result = self.get_music_sheet_info(
+                    plugin_name, playlist_info, page=current_page
+                )
 
                 if not result or not result.get("musicList"):
                     break
@@ -2712,7 +2728,11 @@ class JSPluginManager:
                 current_page += 1
 
             if not data_list:
-                return {"success": False, "error": "歌单解析为空或格式不支持", "data": []}
+                return {
+                    "success": False,
+                    "error": "歌单解析为空或格式不支持",
+                    "data": [],
+                }
 
             # 4. 补齐平台字段，确保后端播歌逻辑能识别来源
             for item in data_list:
@@ -2721,11 +2741,7 @@ class JSPluginManager:
 
             self.log.info(f"歌单全量拉取完成，共 {len(data_list)} 首歌。")
 
-            return {
-                "success": True,
-                "data": data_list,
-                "total": len(data_list)
-            }
+            return {"success": True, "data": data_list, "total": len(data_list)}
         except Exception as e:
             self.log.error(f"插件 {plugin_name} 歌单详情解析执行失败: {e}")
             raise
@@ -2750,6 +2766,7 @@ class JSPluginManager:
             return playlists[0]
         if strategy == "random":
             return random.choice(playlists)
+
         # 定义提取权重的辅助闭包
         def get_count(item, keys):
             for k in keys:
@@ -2760,11 +2777,18 @@ class JSPluginManager:
                     except:
                         continue
             return 0
+
         if strategy == "max_songs":
-            return max(playlists,
-                       key=lambda x: get_count(x, ["worksNum", "worksNums", "songCount", "song_count", "total"]))
+            return max(
+                playlists,
+                key=lambda x: get_count(
+                    x, ["worksNum", "worksNums", "songCount", "song_count", "total"]
+                ),
+            )
         if strategy == "max_plays":
-            return max(playlists, key=lambda x: get_count(x, ["playCount", "play_count"]))
+            return max(
+                playlists, key=lambda x: get_count(x, ["playCount", "play_count"])
+            )
         return playlists[0]
 
     def reset_restart_limit(self):

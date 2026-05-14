@@ -348,16 +348,16 @@ class OnlineMusicService:
     async def _execute_plugin_playlist_search(self, plugin, keyword, page, limit):
         """执行 MusicFree 插件歌单搜索具体业务"""
         if plugin == "all":
-            return {"success": False, "error": "请选择具体的插件平台(如 qq)进行搜单，暂不支持聚合搜单"}
+            return {
+                "success": False,
+                "error": "请选择具体的插件平台(如 qq)进行搜单，暂不支持聚合搜单",
+            }
 
         if self.js_plugin_manager:
             try:
                 # 同 LX 一样调用执行层的适配方法
                 return await self.js_plugin_manager.plugin_playlist_search(
-                    plugin_name=plugin,
-                    keyword=keyword,
-                    page=page,
-                    limit=limit
+                    plugin_name=plugin, keyword=keyword, page=page, limit=limit
                 )
             except Exception as e:
                 return {"success": False, "error": str(e)}
@@ -370,8 +370,7 @@ class OnlineMusicService:
             try:
                 # 同 LX 一样调用执行层的适配方法
                 return await self.js_plugin_manager.plugin_playlist_detail(
-                    plugin_name=plugin,
-                    b64_id=b64_id
+                    plugin_name=plugin, b64_id=b64_id
                 )
             except Exception as e:
                 return {"success": False, "error": f"解析失败: {str(e)}"}
@@ -635,7 +634,9 @@ class OnlineMusicService:
                     enabled = self.js_plugin_manager.get_enabled_plugins()
                     pref = enabled[0] if enabled else "qq"
             # 发起搜索 (拿第 1 页)
-            search_res = await self.get_playlist_online(plugin=pref, keyword=search_key, page=1)
+            search_res = await self.get_playlist_online(
+                plugin=pref, keyword=search_key, page=1
+            )
 
             # 极致柔性脱壳，对齐前端的 "dataObj = resJson.data || resJson" 兜底逻辑
             data_obj = search_res.get("data") or search_res
@@ -651,23 +652,31 @@ class OnlineMusicService:
                 return await self.xiaomusic.do_tts(did, f"没找到关于{search_key}的歌单")
                 # 直接要一个最优歌单，完全不操心底下用了什么策略
             best_playlist = self.js_plugin_manager.pick_best_playlist(playlists)
-            pl_name = best_playlist.get("title") or best_playlist.get("name") or "未知歌单"
+            pl_name = (
+                best_playlist.get("title") or best_playlist.get("name") or "未知歌单"
+            )
             pl_id = best_playlist.get("id")
             # 准备详情请求参数 (MF 歌单需要特殊处理)
             api_type = 2 if self.js_plugin_manager.is_lx_server() else 1
             target_id = pl_id
             if api_type == 1:
                 # MF 详情需要 Base64 包装对象
-                target_id = base64.b64encode(json.dumps(best_playlist).encode("utf-8")).decode("utf-8")
+                target_id = base64.b64encode(
+                    json.dumps(best_playlist).encode("utf-8")
+                ).decode("utf-8")
 
             # 获取歌单内部全量歌曲
-            detail_res = await self.get_playlist_detail_online(id=target_id, plugin=pref, api_type=api_type)
+            detail_res = await self.get_playlist_detail_online(
+                id=target_id, plugin=pref, api_type=api_type
+            )
             songs = detail_res.get("data", [])
             if not songs:
                 return await self.xiaomusic.do_tts(did, f"歌单{pl_name}里一首歌都没有")
             # 推送到音箱 (归并到 _online_iwebplayer_search)
             self.log.info(f"成功选中歌单【{pl_name}】，共 {len(songs)} 首歌")
-            return await self.push_music_list_play(did, songs, "_online_iwebplayer_search")
+            return await self.push_music_list_play(
+                did, songs, "_online_iwebplayer_search"
+            )
         except Exception as e:
             self.log.error(f"语音搜歌单失败: {e}")
             return await self.xiaomusic.do_tts(did, "搜单过程中出了点小故障")

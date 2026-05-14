@@ -143,7 +143,9 @@ class Config:
         os.getenv("XIAOMUSIC_ENABLE_FUZZY_MATCH", "true").lower() == "true"
     )
     # 模糊搜索返回的最大结果数量（用于多结果选择功能）
-    fuzzy_match_max_results: int = int(os.getenv("XIAOMUSIC_FUZZY_MATCH_MAX_RESULTS", "100"))
+    fuzzy_match_max_results: int = int(
+        os.getenv("XIAOMUSIC_FUZZY_MATCH_MAX_RESULTS", "100")
+    )
     stop_tts_msg: str = os.getenv("XIAOMUSIC_STOP_TTS_MSG", "收到,再见")
     enable_config_example: bool = False
 
@@ -152,7 +154,9 @@ class Config:
     )
     keywords_play: str = os.getenv("XIAOMUSIC_KEYWORDS_PLAY", "播放歌曲,放歌曲")
     keywords_online_play: str = os.getenv("XIAOMUSIC_KEYWORDS_ONLINE_PLAY", "在线播放")
-    keywords_online_playlist_play: str = os.getenv("XIAOMUSIC_KEYWORDS_ONLINE_PLAYLIST", "在线歌单,搜索歌单")
+    keywords_online_playlist_play: str = os.getenv(
+        "XIAOMUSIC_KEYWORDS_ONLINE_PLAYLIST", "在线歌单,搜索歌单"
+    )
     keywords_singer_play: str = os.getenv("XIAOMUSIC_KEYWORDS_SINGER_PLAY", "播放歌手")
     keywords_stop: str = os.getenv("XIAOMUSIC_KEYWORDS_STOP", "关机,暂停,停止,停止播放")
     keywords_playlist: str = os.getenv(

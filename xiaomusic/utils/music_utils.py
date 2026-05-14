@@ -589,9 +589,7 @@ def extract_audio_metadata(file_path: str, save_root: str) -> dict:
                 tags["metadata_block_picture"][0]
             )
             if picture_data:
-                metadata.picture = _save_picture(
-                    picture_data, save_root, file_path
-                )
+                metadata.picture = _save_picture(picture_data, save_root, file_path)
 
     elif isinstance(audio, ASF):
         metadata.title = _get_tag_value(tags, "Title")

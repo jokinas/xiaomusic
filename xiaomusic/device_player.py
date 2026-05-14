@@ -270,7 +270,9 @@ class XiaoMusicDevice:
         if len(names) > 1:
             self._pending_selection = names
             self._pending_selection_count = len(names)
-            selection_text = f"共找到{len(names)}条匹配记录，请重新呼叫小爱同学并告诉她第几个"
+            selection_text = (
+                f"共找到{len(names)}条匹配记录，请重新呼叫小爱同学并告诉她第几个"
+            )
             self.log.info(selection_text)
             await self.xiaomusic.do_tts(self.did, selection_text)
             return
@@ -1018,7 +1020,11 @@ class XiaoMusicDevice:
         Args:
             index: 用户选择的序号（从1开始）
         """
-        if not self._pending_selection or index < 1 or index > len(self._pending_selection):
+        if (
+            not self._pending_selection
+            or index < 1
+            or index > len(self._pending_selection)
+        ):
             await self.xiaomusic.do_tts(self.did, "选择无效")
             return
 

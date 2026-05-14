@@ -208,7 +208,7 @@ async def monitor_download_progress_with_output(task_id: str, dirname: str, proc
                 except Exception as e:
                     log.warning(f"Read output error: {e}")
         else:
-            log.warning(f"Process stderr is None, cannot monitor output")
+            log.warning("Process stderr is None, cannot monitor output")
             # 回退到简单的文件统计
             await monitor_download_progress(task_id, dirname)
 
@@ -351,7 +351,7 @@ async def downloadplaylist(data: DownloadPlayList, Verifcation=Depends(verificat
                     "skip_download": True,
                 }
 
-                log.info(f"Getting playlist count via yt-dlp API...")
+                log.info("Getting playlist count via yt-dlp API...")
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     info = ydl.extract_info(data.url, download=False)
 
@@ -395,7 +395,7 @@ async def downloadplaylist(data: DownloadPlayList, Verifcation=Depends(verificat
 
             try:
                 # 等待子进程完成
-                log.info(f"Waiting for download process to complete...")
+                log.info("Waiting for download process to complete...")
                 exit_code = await download_proc.wait()
                 log.info(f"Download completed with exit code {exit_code}")
 
@@ -415,7 +415,7 @@ async def downloadplaylist(data: DownloadPlayList, Verifcation=Depends(verificat
                 # 检查是否已被手动停止
                 if download_tasks[task_id]["status"] == "stopped":
                     # 已经被停止，保持stopped状态
-                    log.info(f"Task was already stopped, keeping status")
+                    log.info("Task was already stopped, keeping status")
                 else:
                     download_tasks[task_id]["status"] = (
                         "completed" if exit_code == 0 else "failed"

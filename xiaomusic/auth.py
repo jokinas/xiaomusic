@@ -127,7 +127,9 @@ class AuthManager:
         except KeyError as e:
             self.mina_service = None
             self.miio_service = None
-            self.log.warning(f"登录失败，API响应格式错误: {e}。建议使用Cookie登录或访问小米官网验证")
+            self.log.warning(
+                f"登录失败，API响应格式错误: {e}。建议使用Cookie登录或访问小米官网验证"
+            )
         except Exception as e:
             self.mina_service = None
             self.miio_service = None
