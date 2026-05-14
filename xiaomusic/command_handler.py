@@ -63,6 +63,9 @@ class CommandHandler:
                 await device.check_replay()
                 return
 
+            # 执行命令前先停止小爱，避免播放"不支持"提示
+            await device.group_force_stop_xiaoai()
+
             # 执行命令
             func = getattr(self.xiaomusic, opvalue)
             await func(did=did, arg1=oparg)

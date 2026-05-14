@@ -124,6 +124,10 @@ class AuthManager:
             self.login_acount = self.config.account
             self.login_password = self.config.password
             self.log.info(f"登录完成. {self.login_acount}")
+        except KeyError as e:
+            self.mina_service = None
+            self.miio_service = None
+            self.log.warning(f"登录失败，API响应格式错误: {e}。建议使用Cookie登录或访问小米官网验证")
         except Exception as e:
             self.mina_service = None
             self.miio_service = None
@@ -148,15 +152,15 @@ class AuthManager:
                 name = h.get("alias", "")
                 if not name:
                     name = h.get("name", "未知名字")
-                if device_id and hardware and did and (did in mi_dids):
-                    device = self.config.devices.get(did, Device())
-                    device.did = did
-                    # 将did存一下 方便其他地方调用
-                    self._cur_did = did
-                    device.device_id = device_id
-                    device.hardware = hardware
-                    device.name = name
-                    devices[did] = device
+                if device_id and hardware and did:
+                    if not mi_dids or not mi_dids[0] or (did in mi_dids):
+                        device = self.config.devices.get(did, Device())
+                        device.did = did
+                        self._cur_did = did
+                        device.device_id = device_id
+                        device.hardware = hardware
+                        device.name = name
+                        devices[did] = device
             self.config.devices = devices
             self.log.info(f"选中的设备: {devices}")
             return devices
